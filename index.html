@@ -204,9 +204,8 @@ code{background:var(--soft);padding:1px 6px;border-radius:6px;font-size:13px}
     <div data-pane="cupons" class="hidden">
       <div class="card">
         <div class="row spread"><h2 style="margin:0">🤖 Cupons automáticos</h2><span class="small muted" id="autoData"></span></div>
-        <p class="small muted">Todo dia o robô pega os cupons do Mercado Livre publicados no Pelando. Os de <b>todo o site</b> e de <b>beleza</b> entram sozinhos no cálculo das ofertas; os outros (itens selecionados, outras categorias) ficam só na lista.</p>
+        <p class="small muted">Todo dia o robô pega os cupons do Mercado Livre publicados no Pelando e guarda só os <b>gerais (válidos para todo o site)</b>. Eles entram sozinhos no cálculo das ofertas. Cupons de itens selecionados ou de uma categoria são ignorados.</p>
         <div class="row"><label><input type="checkbox" id="caAtivo"> Buscar cupons automaticamente</label></div>
-        <div class="row"><label><input type="checkbox" id="caBeleza"> Usar também cupons de beleza</label></div>
         <div class="row"><label><input type="checkbox" id="caAvisar"> Mandar a lista do dia no Telegram</label></div>
         <div id="cuponsAuto" style="margin-top:12px"></div>
       </div>
@@ -506,7 +505,7 @@ function lerConfigDoFormulario() {
   const reps = new Set(c.vendedor?.reputacoesAceitas || ['5_green']);
   $('#cVerdeClaro').checked ? reps.add('4_light_green') : reps.delete('4_light_green');
   c.vendedor = { ...(c.vendedor || {}), reputacoesAceitas: [...reps], aceitarMercadoLider: $('#cLider').checked, aceitarLojaOficial: $('#cOficial').checked };
-  c.cuponsAutomaticos = { ...(c.cuponsAutomaticos || {}), ativo: $('#caAtivo').checked, incluirBeleza: $('#caBeleza').checked, avisarNoTelegram: $('#caAvisar').checked };
+  c.cuponsAutomaticos = { ...(c.cuponsAutomaticos || {}), ativo: $('#caAtivo').checked, avisarNoTelegram: $('#caAvisar').checked };
   c.afiliado = { ativo: $('#cAfAtivo').checked, mattWord: $('#cMattWord').value.trim(), mattTool: $('#cMattTool').value.trim() };
   c.faixasDePreco = $$('#faixas [data-faixa]').map((row) => {
     const min = Number($('[data-k=min]', row).value) || 0; const maxV = $('[data-k=max]', row).value;
@@ -516,13 +515,13 @@ function lerConfigDoFormulario() {
 
 // ----- cupons -----
 function renderCuponsAuto() {
-  const ca = (estado.config.cuponsAutomaticos ||= { ativo: true, incluirBeleza: true, idadeMaximaDias: 3, avisarNoTelegram: true, ignorar: [] });
+  const ca = (estado.config.cuponsAutomaticos ||= { ativo: true, idadeMaximaDias: 3, avisarNoTelegram: true, ignorar: [] });
   ca.ignorar ||= [];
-  $('#caAtivo').checked = !!ca.ativo; $('#caBeleza').checked = ca.incluirBeleza !== false; $('#caAvisar').checked = ca.avisarNoTelegram !== false;
+  $('#caAtivo').checked = !!ca.ativo; $('#caAvisar').checked = ca.avisarNoTelegram !== false;
   const est = estado.cuponsAuto;
   $('#autoData').textContent = est?.data ? 'atualizado em ' + est.data.split('-').reverse().join('/') : 'ainda não buscou';
   if (!est?.cupons?.length) { $('#cuponsAuto').innerHTML = '<p class="small muted">A lista aparece depois da próxima rodada do robô.</p>'; return; }
-  const nomeEscopo = { site: 'todo o site', beleza: 'beleza', restrito: 'itens selecionados' };
+
   const regra = (c) => [c.tipo === 'percentual' ? c.valor + '% OFF' : reais(c.valor) + ' OFF', c.compraMinima > 1 ? 'acima de ' + reais(c.compraMinima) : '', c.descontoMaximo ? 'até ' + reais(c.descontoMaximo) : ''].filter(Boolean).join(' · ');
   const ord = [...est.cupons].sort((a, b) => (b.aplicavel - a.aplicavel) || (b.postado || '').localeCompare(a.postado || ''));
   $('#cuponsAuto').innerHTML = ord.map((c) => {
@@ -531,7 +530,7 @@ function renderCuponsAuto() {
     return `<div class="row spread" style="padding:8px 0;border-top:1px solid var(--line)">
       <div style="min-width:0;flex:1">
         <div class="row" style="gap:8px"><b style="font-family:ui-monospace,monospace">${esc(c.codigo)}</b>
-          ${usando ? '<span class="pill ok">usando nas ofertas</span>' : ignorado ? '<span class="pill bad">você desligou</span>' : `<span class="pill">${nomeEscopo[c.escopo] || c.escopo}</span>`}</div>
+          ${usando ? '<span class="pill ok">usando nas ofertas</span>' : ignorado ? '<span class="pill bad">você desligou</span>' : ''}</div>
         <div class="small muted">${regra(c)}${c.postado ? ' · postado ' + c.postado.split('-').reverse().slice(0, 2).join('/') : ''}</div>
         <div class="small muted" style="overflow-wrap:anywhere">${esc(c.titulo)}</div>
       </div>
