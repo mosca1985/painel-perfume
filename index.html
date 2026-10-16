@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Painel Perfume Bot</title>
+<style>
+/* ---------- tema ---------- */
+:root{
+  --bg:#f6f4f1;--card:#ffffff;--ink:#1d1a17;--muted:#6f6760;--line:#e7e1da;
+  --accent:#b4532a;--accent-ink:#ffffff;--soft:#f3e7df;
+  --ok:#2f7d4f;--ok-soft:#e3f2e8;--warn:#a5641b;--warn-soft:#fbefdc;--bad:#b23b3b;--bad-soft:#f8e2e2;
+  --radius:14px;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04);
+}
+@media (max-width:480px){.tab{padding:8px 4px;font-size:12.5px}.tab .lbl-longo{display:none}}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141210;--card:#1e1b18;--ink:#f1ece6;--muted:#a59b91;--line:#332e29;
+  --accent:#e07a4a;--accent-ink:#1a0f09;--soft:#2c211b;
+  --ok:#6cc58f;--ok-soft:#1b2b21;--warn:#e3a55a;--warn-soft:#2e2416;--bad:#ef7d7d;--bad-soft:#2f1b1b;
+  --shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:20px;margin:4px 0 2px}
+h2{font-size:16px;margin:0 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label.f{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input[type=text],input[type=number],input[type=password],input[type=date],select,textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:110px;resize:vertical}
+.btn{border:1px solid var(--line);background:var(--card);padding:10px 14px;border-radius:10px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.55;cursor:default}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--soft)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}
+/* abas */
+.tabs{position:sticky;top:0;z-index:5;background:var(--bg);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 0}
+.tab{min-width:0;font-size:14px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;cursor:pointer}
+.tab[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* divisões com caixinhas */
+.grupo-topo{display:flex;align-items:center;gap:10px}
+.grupo-topo input[type=text]{font-weight:700;border-color:transparent;background:transparent;padding:6px 8px}
+.grupo-topo input[type=text]:focus{border-color:var(--accent);background:var(--bg)}
+.itens{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;margin:10px 0}
+.item{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--bg)}
+.item.on{border-color:var(--accent);background:var(--soft)}
+.item span{flex:1;min-width:0;overflow-wrap:anywhere}
+.item .x{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none;cursor:pointer}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--card);padding:9px 14px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+/* ofertas */
+.offer{display:grid;grid-template-columns:72px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.offer:first-child{border-top:0}
+.offer img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line)}
+.offer .t{font-weight:600}
+.prices{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin-top:4px}
+.prices b{font-size:15px}
+details summary{cursor:pointer;color:var(--muted);font-size:13px;margin-top:6px}
+table.envios{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+table.envios td{padding:4px 6px;border-top:1px solid var(--line)}
+.stat{background:var(--bg);border-radius:12px;padding:10px 12px}
+#resumo{grid-template-columns:repeat(4,1fr)}
+@media (max-width:640px){#resumo{grid-template-columns:repeat(2,1fr)}}
+.stat .n{font-size:20px;font-weight:700}
+/* cupons */
+.cupom{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+/* barra de salvar */
+.savebar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);display:none}
+.savebar.on{display:block}
+.savebar .in{max-width:860px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1}
+.hidden{display:none!important}
+.lbl-curto{display:none}@media (max-width:480px){.lbl-curto{display:inline}}
+.steps li{margin:6px 0}
+code{background:var(--soft);padding:1px 6px;border-radius:6px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= LOGIN ================= -->
+  <section id="login" class="hidden">
+    <h1>🔔 Painel do Perfume Bot</h1>
+    <p class="muted">Para o painel ler e salvar as configurações do robô, ele precisa de uma chave do GitHub. A chave fica guardada <b>só neste navegador</b>.</p>
+    <div class="card">
+      <h2>Como criar a chave (uma vez só)</h2>
+      <ol class="steps small">
+        <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
+        <li><b>Token name:</b> <code>painel-perfume</code> · <b>Expiration:</b> 1 ano (ou o máximo)</li>
+        <li><b>Repository access:</b> <i>Only select repositories</i> → <code>alerta-perfume-bot</code></li>
+        <li><b>Permissions → Repository permissions:</b> <code>Contents</code> = Read and write · <code>Actions</code> = Read and write</li>
+        <li>Clique em <b>Generate token</b>, copie e cole abaixo.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <label class="f" for="inToken">Chave do GitHub (começa com github_pat_)</label>
+      <input id="inToken" type="password" autocomplete="off" placeholder="github_pat_...">
+      <label class="f" for="inRepo" style="margin-top:10px">Repositório</label>
+      <input id="inRepo" type="text" value="mosca1985/alerta-perfume-bot">
+      <div class="row" style="margin-top:12px"><button class="btn primary" id="btnEntrar">Entrar</button><span id="loginMsg" class="small muted"></span></div>
+    </div>
+  </section>
+
+  <!-- ================= APP ================= -->
+  <section id="app" class="hidden">
+    <div class="row spread">
+      <div><h1>🔔 Perfume Bot</h1><div id="sub" class="small muted">carregando…</div></div>
+      <div class="row">
+        <button class="btn primary" id="btnRodar" title="Roda o robô agora no GitHub">▶ Rodar agora</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid2" id="resumo"></div>
+      <div id="runStatus" class="small muted" style="margin-top:10px"></div>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="foco" aria-selected="true">✅ Buscar</button>
+      <button class="tab" role="tab" data-tab="ofertas">📦 Ofertas</button>
+      <button class="tab" role="tab" data-tab="config">⚙️ <span class="lbl-longo">Configurações</span><span class="lbl-curto">Ajustes</span></button>
+      <button class="tab" role="tab" data-tab="cupons">🎟️ Cupons</button>
+    </nav>
+
+    <!-- BUSCAR: divisões com caixinhas -->
+    <div data-pane="foco">
+      <div class="card">
+        <div class="row spread"><h2 style="margin:0">O que o robô busca</h2><span class="pill" id="contMarcados"></span></div>
+        <p class="small muted" style="margin:8px 0 0">Só os itens <b>marcados</b> são buscados. A caixinha ao lado do nome da divisão marca ou desmarca todos dela.</p>
+      </div>
+      <div id="grupos"></div>
+      <button class="btn ghost" id="btnAddGrupo">+ nova divisão</button>
+      <p class="small muted">Depois de salvar, toque em <b>▶ Rodar agora</b> para buscar na hora — senão vale a partir da próxima rodada automática.</p>
+    </div>
+
+    <!-- OFERTAS -->
+    <div data-pane="ofertas" class="hidden">
+      <div class="card">
+        <div class="row spread">
+          <div class="seg" id="segLista">
+            <button data-lista="enviadas" aria-pressed="true">Enviadas</button>
+            <button data-lista="monitoradas">Todos monitorados</button>
+          </div>
+          <input id="inBusca" type="text" placeholder="🔎 filtrar por nome" style="max-width:260px">
+        </div>
+        <p class="small muted" id="legenda" style="margin:10px 0 0"></p>
+      </div>
+      <div class="card" id="listaOfertas"></div>
+    </div>
+
+    <!-- CONFIG -->
+    <div data-pane="config" class="hidden">
+      <div class="card">
+        <h2>Filtros</h2>
+        <div class="grid2">
+          <div><label class="f" for="cDesc">Desconto mínimo (%)</label><input id="cDesc" type="number" min="0" max="90"></div>
+          <div><label class="f" for="cRodada">Máx. alertas por rodada</label><input id="cRodada" type="number" min="1" max="20"></div>
+          <div><label class="f" for="cDia">Máx. alertas por dia</label><input id="cDia" type="number" min="1" max="100"></div>
+          <div><label class="f" for="cQueda">Reenviar se cair (%)</label><input id="cQueda" type="number" min="1" max="50"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Faixas de preço (R$)</h2>
+        <div id="faixas"></div>
+        <button class="btn ghost" id="btnAddFaixa">+ faixa</button>
+        <p class="small muted">Deixe “até” vazio para “sem teto” (ex.: 1000+). Perfumes árabes costumam custar menos de R$ 200: crie uma faixa 100–200 se quiser pegá-los.</p>
+      </div>
+      <div class="card">
+        <h2>Palavras excluídas</h2>
+        <label class="f" for="cExcluidas">Uma por linha — anúncios com elas são ignorados</label>
+        <textarea id="cExcluidas" rows="5"></textarea>
+      </div>
+      <div class="card">
+        <h2>Vendedor e afiliado</h2>
+        <div class="row"><label><input type="checkbox" id="cLider"> Aceitar MercadoLíder</label></div>
+        <div class="row"><label><input type="checkbox" id="cOficial"> Aceitar loja oficial</label></div>
+        <div class="row"><label><input type="checkbox" id="cVerdeClaro"> Aceitar reputação verde-claro</label></div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:12px 0">
+        <div class="row"><label><input type="checkbox" id="cAfAtivo"> Link de afiliado automático no post</label></div>
+        <div class="grid2" style="margin-top:8px">
+          <div><label class="f" for="cMattWord">matt_word</label><input id="cMattWord" type="text"></div>
+          <div><label class="f" for="cMattTool">matt_tool</label><input id="cMattTool" type="text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUPONS -->
+    <div data-pane="cupons" class="hidden">
+      <div class="card">
+        <h2>Cupons</h2>
+        <p class="small muted">O robô usa o cupom válido que deixar o menor preço. Validade vale até o fim do dia.</p>
+        <div id="cupons"></div>
+        <button class="btn ghost" id="btnAddCupom">+ cupom</button>
+      </div>
+    </div>
+
+    <p class="small muted" style="margin-top:24px">
+      <button class="btn ghost small" id="btnSair">Sair (apagar chave deste navegador)</button>
+    </p>
+  </section>
+</div>
+
+<div class="savebar" id="savebar"><div class="in">
+  <span class="small" id="saveMsg">Alterações não salvas</span>
+  <div class="row"><button class="btn ghost" id="btnDescartar">Descartar</button><button class="btn primary" id="btnSalvar">Salvar</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================================================================
+// Painel do alerta-perfume-bot
+// Lê e grava config.json / cupons.json no repositório privado do GitHub
+// usando uma chave (fine-grained token) guardada só neste navegador.
+// =====================================================================
+
+const WORKFLOW = 'alerta-perfume.yml';
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+const estado = {
+  token: null, repo: null,
+  config: null, configSha: null,
+  cupons: null, cuponsSha: null,
+  enviados: {}, historico: {}, produtos: {}, contagem: null, rodada: null,
+  sujo: false, lista: 'enviadas',
+};
+
+// ---------- armazenamento local (só conveniência; pode falhar) ----------
+const local = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+
+// ---------- utilidades ----------
+const reais = (v) => v == null || isNaN(v) ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const hojeSP = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+const dataBR = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const linhas = (txt) => txt.split('\n').map((s) => s.trim()).filter(Boolean);
+function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms); }
+const b64encode = (str) => { const bytes = new TextEncoder().encode(str); let bin = ''; bytes.forEach((b) => (bin += String.fromCharCode(b))); return btoa(bin); };
+const b64decode = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, '')), (c) => c.charCodeAt(0)));
+
+// ---------- GitHub API ----------
+async function gh(path, opts = {}) {
+  const resp = await fetch(`https://api.github.com/repos/${estado.repo}${path}`, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${estado.token}`,
+      Accept: opts.raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    cache: 'no-store',
+  });
+  if (!resp.ok) {
+    const corpo = await resp.json().catch(() => ({}));
+    const e = new Error(corpo.message || `HTTP ${resp.status}`); e.status = resp.status; throw e;
+  }
+  if (resp.status === 204) return null;
+  return opts.raw ? resp.text() : resp.json();
+}
+/** Lê um JSON do repositório; devolve {dados, sha}. Arquivos grandes vêm pelo modo "raw". */
+async function lerArquivo(caminho, { comSha = false, padrao = null } = {}) {
+  try {
+    if (comSha) {
+      const r = await gh(`/contents/${caminho}?ref=main`);
+      return { dados: JSON.parse(b64decode(r.content)), sha: r.sha };
+    }
+    return { dados: JSON.parse(await gh(`/contents/${caminho}?ref=main`, { raw: true })), sha: null };
+  } catch (e) {
+    if (e.status === 404) return { dados: padrao, sha: null };
+    throw e;
+  }
+}
+async function gravarArquivo(caminho, dados, sha, mensagem) {
+  const r = await gh(`/contents/${caminho}`, {
+    method: 'PUT',
+    body: JSON.stringify({ message: mensagem, content: b64encode(JSON.stringify(dados, null, 2) + '\n'), sha: sha || undefined, branch: 'main' }),
+  });
+  return r.content.sha;
+}
+
+// ---------- login ----------
+async function entrar() {
+  estado.token = $('#inToken').value.trim() || local.get('pb_token');
+  estado.repo = $('#inRepo').value.trim() || 'mosca1985/alerta-perfume-bot';
+  if (!estado.token) { $('#loginMsg').textContent = 'Cole a chave.'; return; }
+  $('#loginMsg').textContent = 'Conectando…';
+  try {
+    await carregarTudo();
+    local.set('pb_token', estado.token); local.set('pb_repo', estado.repo);
+    $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  } catch (e) {
+    $('#loginMsg').textContent = e.status === 401 ? 'Chave inválida ou vencida.' : e.status === 404 ? 'Repositório não encontrado ou a chave não tem acesso a ele.' : 'Erro: ' + e.message;
+    $('#login').classList.remove('hidden'); $('#app').classList.add('hidden');
+  }
+}
+function sair() {
+  if (!confirm('Apagar a chave deste navegador?')) return;
+  local.del('pb_token'); location.reload();
+}
+
+// ---------- carregar dados ----------
+async function carregarTudo() {
+  const [cfg, cup, env, hist, prods, cont, rod] = await Promise.all([
+    lerArquivo('config.json', { comSha: true }),
+    lerArquivo('cupons.json', { comSha: true, padrao: [] }),
+    lerArquivo('data/enviados.json', { padrao: {} }),
+    lerArquivo('data/historico.json', { padrao: {} }),
+    lerArquivo('data/produtos.json', { padrao: {} }),
+    lerArquivo('data/contagem-diaria.json', { padrao: null }),
+    lerArquivo('data/ultima-rodada.json', { padrao: null }),
+  ]);
+  Object.assign(estado, {
+    config: cfg.dados, configSha: cfg.sha, cupons: cup.dados || [], cuponsSha: cup.sha,
+    enviados: env.dados || {}, historico: hist.dados || {}, produtos: prods.dados || {},
+    contagem: cont.dados, rodada: rod.dados,
+  });
+  // config antiga (lista simples) vira uma divisão
+  if (!Array.isArray(estado.config.grupos)) {
+    estado.config.grupos = [{ nome: 'Meus perfumes', itens: (estado.config.interesses || []).map((termo) => ({ termo, ativo: true })) }];
+  }
+  marcarSujo(false);
+  renderTudo();
+  atualizarRun();
+}
+
+// ---------- render ----------
+function renderTudo() { renderResumo(); renderGrupos(); renderOfertas(); renderConfig(); renderCupons(); }
+
+/** Termos marcados (sem repetição) — exatamente o que o robô vai buscar. */
+function termosMarcados() {
+  return [...new Set(estado.config.grupos.flatMap((g) => g.itens.filter((i) => i.ativo).map((i) => i.termo.trim())).filter(Boolean))];
+}
+function descricaoBusca() {
+  const n = termosMarcados().length;
+  return n ? `${n} marcados` : 'nada marcado';
+}
+
+function renderResumo() {
+  const c = estado.config, hoje = hojeSP();
+  const enviadosHoje = estado.contagem?.data === hoje ? estado.contagem.enviados : 0;
+  const r = estado.rodada;
+  $('#sub').textContent = `${estado.repo} · buscando: ${descricaoBusca()}`;
+  $('#resumo').innerHTML = `
+    <div class="stat"><div class="small muted">Alertas hoje</div><div class="n">${enviadosHoje} / ${c.maxAlertasPorDia ?? '∞'}</div></div>
+    <div class="stat"><div class="small muted">Última rodada</div><div class="n" style="font-size:15px">${r ? dataBR(r.fim || r.inicio) : '—'}</div>
+      <div class="small muted">${r ? `${r.produtos} produtos · ${r.aprovadas} novas · ${r.enviadas} enviadas` : ''}</div></div>
+    <div class="stat"><div class="small muted">Produtos já enviados</div><div class="n">${Object.keys(estado.enviados).length}</div></div>
+    <div class="stat"><div class="small muted">Monitorados</div><div class="n">${Object.keys(estado.historico).length}</div></div>`;
+  if (r?.erro) $('#resumo').insertAdjacentHTML('beforeend', `<div class="stat" style="grid-column:1/-1"><span class="pill bad">Erro na última rodada</span> <span class="small">${esc(r.erro)}</span></div>`);
+}
+
+// ----- divisões com caixinhas -----
+function renderGrupos() {
+  const gs = estado.config.grupos;
+  $('#grupos').innerHTML = gs.map((g, gi) => {
+    const on = g.itens.filter((i) => i.ativo).length;
+    return `<div class="card" data-g="${gi}">
+      <div class="grupo-topo">
+        <input type="checkbox" data-gtoggle="${gi}" ${on && on === g.itens.length ? 'checked' : ''} aria-label="Marcar todos de ${esc(g.nome)}">
+        <input type="text" data-gnome="${gi}" value="${esc(g.nome)}" aria-label="Nome da divisão">
+        <span class="small muted" style="white-space:nowrap">${on}/${g.itens.length}</span>
+      </div>
+      <div class="itens">${g.itens.map((it, ii) => `
+        <label class="item${it.ativo ? ' on' : ''}">
+          <input type="checkbox" data-item="${gi}:${ii}" ${it.ativo ? 'checked' : ''}>
+          <span>${esc(it.termo)}</span>
+          <button class="x" data-del-item="${gi}:${ii}" title="Remover">×</button>
+        </label>`).join('')}</div>
+      <div class="row" style="flex-wrap:nowrap">
+        <input type="text" data-add-input="${gi}" placeholder="adicionar perfume ou marca">
+        <button class="btn" data-add-item="${gi}">+</button>
+      </div>
+      <div style="text-align:right;margin-top:8px"><button class="btn ghost danger small" data-del-grupo="${gi}">remover divisão</button></div>
+    </div>`;
+  }).join('');
+  // caixinha da divisão fica "meio marcada" quando só parte dos itens está marcada
+  gs.forEach((g, gi) => { const on = g.itens.filter((i) => i.ativo).length; const cb = $(`[data-gtoggle="${gi}"]`); if (cb) cb.indeterminate = on > 0 && on < g.itens.length; });
+  const n = termosMarcados().length;
+  $('#contMarcados').textContent = n ? `${n} marcados` : 'nada marcado';
+  $('#contMarcados').className = 'pill ' + (n ? 'ok' : 'bad');
+}
+function adicionarItem(gi) {
+  const inp = $(`[data-add-input="${gi}"]`);
+  const novos = inp.value.split(',').map((t) => t.trim()).filter(Boolean);
+  if (!novos.length) return;
+  const g = estado.config.grupos[gi];
+  for (const termo of novos) if (!g.itens.some((i) => i.termo.toLowerCase() === termo.toLowerCase())) g.itens.push({ termo, ativo: true });
+  marcarSujo(); renderGrupos(); renderResumo();
+  $(`[data-add-input="${gi}"]`)?.focus();
+}
+
+// ----- ofertas -----
+function stats(chave) {
+  const pts = estado.historico[chave] || [];
+  if (!pts.length) return null;
+  const precos = pts.map((p) => p.preco);
+  return { min: Math.min(...precos), max: Math.max(...precos), atual: pts[pts.length - 1].preco, quando: pts[pts.length - 1].data, n: pts.length };
+}
+function selo(s) {
+  if (!s || s.n < 2) return '<span class="pill">pouco histórico</span>';
+  if (s.atual <= s.min) return '<span class="pill ok">menor preço já visto</span>';
+  const pos = (s.atual - s.min) / Math.max(1, s.max - s.min);
+  if (pos <= 0.35) return '<span class="pill ok">perto do mínimo</span>';
+  if (pos >= 0.75) return '<span class="pill bad">perto do máximo</span>';
+  return '<span class="pill warn">preço médio</span>';
+}
+function renderOfertas() {
+  const busca = $('#inBusca').value.trim().toLowerCase();
+  const el = $('#listaOfertas');
+  if (estado.lista === 'enviadas') {
+    $('#legenda').textContent = 'Tudo que o robô já te mandou. “Atual” é o preço na última rodada; mín/máx são os preços já vistos.';
+    const itens = Object.entries(estado.enviados)
+      .map(([k, v]) => ({ k, ...v }))
+      .filter((v) => !busca || (v.nome || v.titulo || '').toLowerCase().includes(busca))
+      .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+    el.innerHTML = itens.length ? itens.map((v) => {
+      const s = stats(v.k);
+      const envios = v.envios || [{ data: v.data, preco: v.preco, precoSemCupom: v.precoSemCupom }];
+      return `<div class="offer"${v.foto ? '' : ' style="grid-template-columns:1fr"'}>
+        ${v.foto ? `<img src="${esc(v.foto)}" alt="" loading="lazy">` : ''}
+        <div>
+          <div class="t">${esc(v.nome || v.titulo)}</div>
+          <div class="row small" style="margin-top:4px"><span class="pill">enviado ${v.vezes || envios.length}×</span>${selo(s)}</div>
+          <div class="prices">
+            <span>Último envio <b>${reais(v.precoSemCupom ?? v.preco)}</b></span>
+            ${s ? `<span>Atual <b>${reais(s.atual)}</b></span><span>Mín ${reais(s.min)}</span><span>Máx ${reais(s.max)}</span>` : ''}
+          </div>
+          <details><summary>Histórico de envios</summary>
+            <table class="envios">${envios.slice().reverse().map((e) => `<tr><td>${dataBR(e.data)}</td><td>${reais(e.precoSemCupom ?? e.preco)}</td><td>${e.desconto != null ? e.desconto + '% OFF' : ''}</td><td>${esc(e.loja || '')}</td></tr>`).join('')}</table>
+          </details>
+          ${v.link ? `<a class="small" href="${esc(v.link)}" target="_blank" rel="noopener">abrir no Mercado Livre ↗</a>` : ''}
+        </div></div>`;
+    }).join('') : '<p class="muted">Nada enviado ainda.</p>';
+  } else {
+    $('#legenda').textContent = 'Todos os produtos que o robô acompanha, ordenados pelo quanto estão abaixo do maior preço já visto.';
+    const itens = Object.keys(estado.historico)
+      .map((k) => ({ k, s: stats(k), p: estado.produtos[k] || {} }))
+      .filter((x) => x.s && (!busca || (x.p.titulo || '').toLowerCase().includes(busca)))
+      .map((x) => ({ ...x, queda: 1 - x.s.atual / x.s.max }))
+      .sort((a, b) => b.queda - a.queda)
+      .slice(0, 150);
+    el.innerHTML = itens.length ? itens.map((x) => `<div class="offer" style="grid-template-columns:1fr">
+        <div>
+          <div class="t">${esc(x.p.titulo || x.k)}</div>
+          <div class="row small" style="margin-top:4px">${selo(x.s)}${estado.enviados[x.k] ? '<span class="pill">já enviado</span>' : ''}${x.p.loja ? `<span class="muted">${esc(x.p.loja)}</span>` : ''}</div>
+          <div class="prices"><span>Atual <b>${reais(x.s.atual)}</b></span><span>Mín ${reais(x.s.min)}</span><span>Máx ${reais(x.s.max)}</span>${x.p.precoOriginal ? `<span class="muted">“De” ${reais(x.p.precoOriginal)}</span>` : ''}<span class="muted">${x.s.n} registros</span></div>
+          ${x.p.link ? `<a class="small" href="${esc(x.p.link)}" target="_blank" rel="noopener">abrir no Mercado Livre ↗</a>` : ''}
+        </div></div>`).join('') : '<p class="muted">Sem dados ainda — aparecem depois das próximas rodadas.</p>';
+  }
+}
+
+// ----- configurações -----
+function renderConfig() {
+  const c = estado.config;
+  $('#cDesc').value = c.descontoMinimo; $('#cRodada').value = c.maxAlertasPorRodada; $('#cDia').value = c.maxAlertasPorDia ?? '';
+  $('#cQueda').value = c.novaOferta?.quedaMinimaParaReenviar ?? 5;
+  $('#cExcluidas').value = (c.palavrasExcluidas || []).join('\n');
+  $('#cLider').checked = !!c.vendedor?.aceitarMercadoLider;
+  $('#cOficial').checked = !!c.vendedor?.aceitarLojaOficial;
+  $('#cVerdeClaro').checked = (c.vendedor?.reputacoesAceitas || []).includes('4_light_green');
+  $('#cAfAtivo').checked = !!c.afiliado?.ativo; $('#cMattWord').value = c.afiliado?.mattWord || ''; $('#cMattTool').value = c.afiliado?.mattTool || '';
+  $('#faixas').innerHTML = (c.faixasDePreco || []).map((f, i) => `
+    <div class="row" style="margin-bottom:8px" data-faixa="${i}">
+      <input type="number" data-k="min" value="${f.min}" placeholder="de" style="max-width:120px">
+      <span class="muted">até</span>
+      <input type="number" data-k="max" value="${f.max ?? ''}" placeholder="sem teto" style="max-width:120px">
+      <button class="btn ghost danger" data-del-faixa="${i}">remover</button>
+    </div>`).join('');
+}
+function lerConfigDoFormulario() {
+  const c = estado.config;
+  c.descontoMinimo = Number($('#cDesc').value) || 0;
+  c.maxAlertasPorRodada = Math.max(1, Number($('#cRodada').value) || 1);
+  c.maxAlertasPorDia = $('#cDia').value === '' ? null : Math.max(1, Number($('#cDia').value));
+  c.novaOferta = { ...(c.novaOferta || {}), quedaMinimaParaReenviar: Number($('#cQueda').value) || 5 };
+  c.palavrasExcluidas = linhas($('#cExcluidas').value);
+  const reps = new Set(c.vendedor?.reputacoesAceitas || ['5_green']);
+  $('#cVerdeClaro').checked ? reps.add('4_light_green') : reps.delete('4_light_green');
+  c.vendedor = { ...(c.vendedor || {}), reputacoesAceitas: [...reps], aceitarMercadoLider: $('#cLider').checked, aceitarLojaOficial: $('#cOficial').checked };
+  c.afiliado = { ativo: $('#cAfAtivo').checked, mattWord: $('#cMattWord').value.trim(), mattTool: $('#cMattTool').value.trim() };
+  c.faixasDePreco = $$('#faixas [data-faixa]').map((row) => {
+    const min = Number($('[data-k=min]', row).value) || 0; const maxV = $('[data-k=max]', row).value;
+    return { min, max: maxV === '' ? null : Number(maxV) };
+  }).sort((a, b) => a.min - b.min);
+}
+
+// ----- cupons -----
+function renderCupons() {
+  $('#cupons').innerHTML = estado.cupons.map((c, i) => `
+    <div class="cupom" data-cupom="${i}">
+      <div><label class="f">Código</label><input type="text" data-k="codigo" value="${esc(c.codigo || '')}"></div>
+      <div><label class="f">Tipo</label><select data-k="tipo"><option value="percentual"${c.tipo === 'percentual' ? ' selected' : ''}>% desconto</option><option value="reais"${c.tipo !== 'percentual' ? ' selected' : ''}>R$ desconto</option></select></div>
+      <div><label class="f">Valor</label><input type="number" data-k="valor" value="${c.valor ?? ''}"></div>
+      <div><label class="f">Compra mínima</label><input type="number" data-k="compraMinima" value="${c.compraMinima ?? ''}"></div>
+      <div><label class="f">Desconto máx. (R$)</label><input type="number" data-k="descontoMaximo" value="${c.descontoMaximo ?? ''}"></div>
+      <div><label class="f">Validade</label><input type="date" data-k="validade" value="${esc(c.validade || '')}"></div>
+      <div class="row"><label><input type="checkbox" data-k="ativo"${c.ativo === false ? '' : ' checked'}> ativo</label>
+        ${c.validade && c.validade < hojeSP() ? '<span class="pill bad">vencido</span>' : ''}</div>
+      <div class="row" style="justify-content:flex-end"><button class="btn ghost danger" data-del-cupom="${i}">remover</button></div>
+    </div>`).join('') || '<p class="muted small">Nenhum cupom.</p>';
+}
+function lerCuponsDoFormulario() {
+  estado.cupons = $$('#cupons [data-cupom]').map((el) => {
+    const v = (k) => $(`[data-k=${k}]`, el).value;
+    const num = (k) => (v(k) === '' ? undefined : Number(v(k)));
+    return {
+      codigo: v('codigo').trim().toUpperCase(), tipo: v('tipo'), valor: num('valor'),
+      compraMinima: num('compraMinima'), descontoMaximo: num('descontoMaximo'),
+      validade: v('validade') || undefined, ativo: $('[data-k=ativo]', el).checked,
+    };
+  }).filter((c) => c.codigo);
+}
+
+// ---------- salvar ----------
+function marcarSujo(v = true) { estado.sujo = v; $('#savebar').classList.toggle('on', v); }
+async function salvar() {
+  const btn = $('#btnSalvar'); btn.disabled = true; $('#saveMsg').textContent = 'Salvando…';
+  try {
+    lerConfigDoFormulario(); lerCuponsDoFormulario();
+    const atualCfg = await lerArquivo('config.json', { comSha: true });
+    estado.configSha = await gravarArquivo('config.json', estado.config, atualCfg.sha, `painel: configurações (${descricaoBusca()})`);
+    const atualCup = await lerArquivo('cupons.json', { comSha: true, padrao: [] });
+    if (JSON.stringify(atualCup.dados) !== JSON.stringify(estado.cupons)) {
+      estado.cuponsSha = await gravarArquivo('cupons.json', estado.cupons, atualCup.sha, 'painel: cupons');
+    }
+    marcarSujo(false); renderTudo(); toast('✅ Salvo! Vale na próxima rodada — ou toque em ▶ Rodar agora.', 3800);
+  } catch (e) {
+    $('#saveMsg').textContent = 'Erro ao salvar: ' + e.message; toast('❌ Não salvou: ' + e.message, 5000); btn.disabled = false; return;
+  }
+  btn.disabled = false; $('#saveMsg').textContent = 'Alterações não salvas';
+}
+
+// ---------- rodar agora / status ----------
+async function rodarAgora() {
+  if (estado.sujo && !confirm('Há alterações não salvas. Rodar mesmo assim (com a configuração antiga)?')) return;
+  const b = $('#btnRodar'); b.disabled = true;
+  try {
+    await gh(`/actions/workflows/${WORKFLOW}/dispatches`, { method: 'POST', body: JSON.stringify({ ref: 'main' }) });
+    toast('▶ Robô iniciado! Leva 1–3 minutos.');
+    setTimeout(atualizarRun, 4000);
+  } catch (e) {
+    toast(e.status === 403 ? '❌ A chave precisa da permissão Actions: Read and write.' : '❌ ' + e.message, 5000);
+  } finally { setTimeout(() => (b.disabled = false), 8000); }
+}
+async function atualizarRun() {
+  try {
+    const r = await gh(`/actions/workflows/${WORKFLOW}/runs?per_page=1`);
+    const run = r.workflow_runs?.[0];
+    if (!run) { $('#runStatus').textContent = ''; return; }
+    const st = run.status !== 'completed' ? '<span class="pill warn">rodando agora…</span>'
+      : run.conclusion === 'success' ? '<span class="pill ok">última execução ok</span>' : `<span class="pill bad">última execução: ${esc(run.conclusion)}</span>`;
+    $('#runStatus').innerHTML = `${st} · ${dataBR(run.created_at)} · <a href="${esc(run.html_url)}" target="_blank" rel="noopener">ver log</a>`;
+    if (run.status !== 'completed') setTimeout(atualizarRun, 10000);
+    else if (atualizarRun._rodando) { atualizarRun._rodando = false; recarregarDados(); }
+    if (run.status !== 'completed') atualizarRun._rodando = true;
+  } catch { /* sem permissão de Actions: só não mostra */ }
+}
+async function recarregarDados() {
+  if (estado.sujo) return; // não atropela edição em andamento
+  try { await carregarTudo(); toast('🔄 Dados atualizados com a última rodada.'); } catch {}
+}
+
+// ---------- eventos ----------
+document.addEventListener('click', (ev) => {
+  const t = ev.target.closest('button'); if (!t) return;
+  if (t.matches('.tab')) {
+    $$('.tab').forEach((b) => b.setAttribute('aria-selected', String(b === t)));
+    $$('[data-pane]').forEach((p) => p.classList.toggle('hidden', p.dataset.pane !== t.dataset.tab));
+    return;
+  }
+  if (t.dataset.addItem != null) { adicionarItem(Number(t.dataset.addItem)); return; }
+  if (t.dataset.delItem != null) {
+    ev.preventDefault();
+    const [gi, ii] = t.dataset.delItem.split(':').map(Number);
+    estado.config.grupos[gi].itens.splice(ii, 1); marcarSujo(); renderGrupos(); renderResumo(); return;
+  }
+  if (t.dataset.delGrupo != null) {
+    const g = estado.config.grupos[Number(t.dataset.delGrupo)];
+    if (!confirm(`Remover a divisão "${g.nome}" e seus ${g.itens.length} itens?`)) return;
+    estado.config.grupos.splice(Number(t.dataset.delGrupo), 1); marcarSujo(); renderGrupos(); renderResumo(); return;
+  }
+  if (t.dataset.lista) { estado.lista = t.dataset.lista; $$('#segLista button').forEach((b) => b.setAttribute('aria-pressed', String(b === t))); renderOfertas(); return; }
+  if (t.dataset.delFaixa != null) { lerConfigDoFormulario(); estado.config.faixasDePreco.splice(Number(t.dataset.delFaixa), 1); marcarSujo(); renderConfig(); return; }
+  if (t.dataset.delCupom != null) { lerCuponsDoFormulario(); estado.cupons.splice(Number(t.dataset.delCupom), 1); marcarSujo(); renderCupons(); return; }
+});
+$('#btnEntrar').onclick = entrar;
+$('#inToken').addEventListener('keydown', (e) => e.key === 'Enter' && entrar());
+$('#btnSair').onclick = sair;
+$('#btnRodar').onclick = rodarAgora;
+$('#btnSalvar').onclick = salvar;
+$('#btnDescartar').onclick = () => { carregarTudo().then(() => toast('Alterações descartadas.')); };
+$('#btnAddFaixa').onclick = () => { lerConfigDoFormulario(); estado.config.faixasDePreco.push({ min: 0, max: null }); marcarSujo(); renderConfig(); };
+$('#btnAddGrupo').onclick = () => { estado.config.grupos.push({ nome: 'Nova divisão', itens: [] }); marcarSujo(); renderGrupos(); $(`[data-gnome="${estado.config.grupos.length - 1}"]`)?.select(); };
+$('#btnAddCupom').onclick = () => { lerCuponsDoFormulario(); estado.cupons.push({ codigo: '', tipo: 'percentual', valor: 10, validade: hojeSP(), ativo: true }); marcarSujo(); renderCupons(); };
+// caixinhas e nomes das divisões
+$('#grupos').addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.item) { const [gi, ii] = t.dataset.item.split(':').map(Number); estado.config.grupos[gi].itens[ii].ativo = t.checked; }
+  else if (t.dataset.gtoggle) { estado.config.grupos[Number(t.dataset.gtoggle)].itens.forEach((i) => (i.ativo = t.checked)); }
+  else return;
+  marcarSujo(); renderGrupos(); renderResumo();
+});
+$('#grupos').addEventListener('input', (e) => { const t = e.target; if (t.dataset.gnome) { estado.config.grupos[Number(t.dataset.gnome)].nome = t.value; marcarSujo(); } });
+$('#grupos').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.dataset.addInput) adicionarItem(Number(e.target.dataset.addInput)); });
+$('#inBusca').addEventListener('input', renderOfertas);
+// qualquer edição nas abas de configuração/cupons marca como "não salvo"
+['[data-pane=config]', '[data-pane=cupons]'].forEach((s) => $(s).addEventListener('input', () => marcarSujo()));
+window.addEventListener('beforeunload', (e) => { if (estado.sujo) { e.preventDefault(); e.returnValue = ''; } });
+
+// ---------- início ----------
+(function iniciar() {
+  const tok = local.get('pb_token'); const repo = local.get('pb_repo');
+  if (repo) $('#inRepo').value = repo;
+  if (tok) { estado.token = tok; entrar(); } else $('#login').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
